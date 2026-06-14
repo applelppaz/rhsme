@@ -1,0 +1,14 @@
+{
+  "name": "Hanon Rhythm Trainer",
+  "short_name": "Hanon Rhythm",
+  "description": "A minimal liquid-glass rhythm guide for Hanon piano practice.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070a1a",
+  "theme_color": "#0b1026",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
