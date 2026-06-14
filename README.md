@@ -61,5 +61,7 @@ Pure HTML + CSS + vanilla JS — no build step, no framework, no bundler.
 
 - Rhythm patterns and fingerings are **data-driven** (`PATTERNS` and `KEYS` in
   `app.js`), so they are easy to adjust or extend.
-- Scales/arpeggios cover the 12 **major** keys with standard right-hand
-  fingerings.
+- Scales/arpeggios cover the 12 **major** keys with right-hand fingerings
+  following Hanon, *The Virtuoso Pianist* (Ex. 39 scales, Ex. 41 arpeggios) —
+  e.g. white-key arpeggios use 1·2·3, and black-key roots use the 2·1·2·4 shape.
+  Minor keys can be added later (the `KEYS` table is data-driven).

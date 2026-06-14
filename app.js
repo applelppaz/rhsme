@@ -57,20 +57,23 @@
 
   // tonic = letter index; acc/n = key signature; startOct = lowest tonic octave.
   // scaleFng = RH fingering per scale degree (one octave); scaleTop = finger on
-  // the very top tonic.  arpFng / arpTop similar for the major triad.
+  // the very top tonic.  For the major triad arpeggio: arpFng = repeating finger
+  // per chord tone (tonic, 3rd, 5th); arpStart = finger on the lowest tonic;
+  // arpTop = finger on the highest tonic.  White-key roots use 1·2·3 (top 5);
+  // F uses 1·2·4; black-key roots use the 2·1·2·4 shape (thumb on a white note).
   const KEYS = [
-    { id: "C",  name: "C",  tonic: 0, acc: "none",  n: 0, startOct: 3, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpTop: 5 },
-    { id: "G",  name: "G",  tonic: 4, acc: "sharp", n: 1, startOct: 3, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpTop: 5 },
-    { id: "D",  name: "D",  tonic: 1, acc: "sharp", n: 2, startOct: 3, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpTop: 5 },
-    { id: "A",  name: "A",  tonic: 5, acc: "sharp", n: 3, startOct: 2, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpTop: 5 },
-    { id: "E",  name: "E",  tonic: 2, acc: "sharp", n: 4, startOct: 2, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpTop: 5 },
-    { id: "B",  name: "B",  tonic: 6, acc: "sharp", n: 5, startOct: 2, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpTop: 5 },
-    { id: "Gb", name: "G♭", tonic: 4, acc: "flat",  n: 6, startOct: 3, scaleFng: [2,3,4,1,2,3,1], scaleTop: 2, arpFng: [1,2,3], arpTop: 5 },
-    { id: "Db", name: "D♭", tonic: 1, acc: "flat",  n: 5, startOct: 3, scaleFng: [2,3,1,2,3,4,1], scaleTop: 2, arpFng: [1,2,3], arpTop: 5 },
-    { id: "Ab", name: "A♭", tonic: 5, acc: "flat",  n: 4, startOct: 2, scaleFng: [3,4,1,2,3,1,2], scaleTop: 3, arpFng: [1,2,3], arpTop: 5 },
-    { id: "Eb", name: "E♭", tonic: 2, acc: "flat",  n: 3, startOct: 2, scaleFng: [3,1,2,3,4,1,2], scaleTop: 3, arpFng: [1,2,3], arpTop: 5 },
-    { id: "Bb", name: "B♭", tonic: 6, acc: "flat",  n: 2, startOct: 2, scaleFng: [4,1,2,3,1,2,3], scaleTop: 4, arpFng: [1,2,3], arpTop: 5 },
-    { id: "F",  name: "F",  tonic: 3, acc: "flat",  n: 1, startOct: 3, scaleFng: [1,2,3,4,1,2,3], scaleTop: 4, arpFng: [1,2,3], arpTop: 5 },
+    { id: "C",  name: "C",  tonic: 0, acc: "none",  n: 0, startOct: 3, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpStart: 1, arpTop: 5 },
+    { id: "G",  name: "G",  tonic: 4, acc: "sharp", n: 1, startOct: 3, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpStart: 1, arpTop: 5 },
+    { id: "D",  name: "D",  tonic: 1, acc: "sharp", n: 2, startOct: 3, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpStart: 1, arpTop: 5 },
+    { id: "A",  name: "A",  tonic: 5, acc: "sharp", n: 3, startOct: 2, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpStart: 1, arpTop: 5 },
+    { id: "E",  name: "E",  tonic: 2, acc: "sharp", n: 4, startOct: 2, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpStart: 1, arpTop: 5 },
+    { id: "B",  name: "B",  tonic: 6, acc: "sharp", n: 5, startOct: 2, scaleFng: [1,2,3,1,2,3,4], scaleTop: 5, arpFng: [1,2,3], arpStart: 1, arpTop: 5 },
+    { id: "Gb", name: "G♭", tonic: 4, acc: "flat",  n: 6, startOct: 3, scaleFng: [2,3,4,1,2,3,1], scaleTop: 2, arpFng: [4,1,2], arpStart: 2, arpTop: 4 },
+    { id: "Db", name: "D♭", tonic: 1, acc: "flat",  n: 5, startOct: 3, scaleFng: [2,3,1,2,3,4,1], scaleTop: 2, arpFng: [4,1,2], arpStart: 2, arpTop: 4 },
+    { id: "Ab", name: "A♭", tonic: 5, acc: "flat",  n: 4, startOct: 2, scaleFng: [3,4,1,2,3,1,2], scaleTop: 3, arpFng: [4,1,2], arpStart: 2, arpTop: 4 },
+    { id: "Eb", name: "E♭", tonic: 2, acc: "flat",  n: 3, startOct: 2, scaleFng: [3,1,2,3,4,1,2], scaleTop: 3, arpFng: [4,1,2], arpStart: 2, arpTop: 4 },
+    { id: "Bb", name: "B♭", tonic: 6, acc: "flat",  n: 2, startOct: 2, scaleFng: [4,1,2,3,1,2,3], scaleTop: 4, arpFng: [4,1,2], arpStart: 2, arpTop: 4 },
+    { id: "F",  name: "F",  tonic: 3, acc: "flat",  n: 1, startOct: 3, scaleFng: [1,2,3,4,1,2,3], scaleTop: 4, arpFng: [1,2,4], arpStart: 1, arpTop: 5 },
   ];
   const keyById = (id) => KEYS.find((k) => k.id === id);
 
@@ -94,7 +97,7 @@
       up.push({
         step: oct * 7 + letter,
         midi: (oct + 1) * 12 + SEMI[letter] + acc,
-        finger: i === total ? top : fng[i % perOct],
+        finger: i === total ? top : (thirds && i === 0 ? key.arpStart : fng[i % perOct]),
       });
       const advance = thirds ? 2 : 1;    // step a third for arpeggios
       for (let k = 0; k < advance; k++) { letter = (letter + 1) % 7; if (letter === 0) oct++; }
