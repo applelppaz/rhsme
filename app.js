@@ -1,23 +1,30 @@
 /* Hannon — a minimal practice-sheet viewer.
-   One control cycles the practice (Scales → Arpeggios → Exercises); each shows
-   a random page from Hanon's "The Virtuoso Pianist" (Schirmer edition), as
-   large as the screen allows.  No audio. */
+   One control cycles the practice (Rhythm → Scales → Arpeggios); each shows a
+   page from Hanon's "The Virtuoso Pianist" (public-domain) chosen at random,
+   as large as the screen allows.  Rhythm shows two rows: a random exercise
+   (No. 1–30) over a random rhythm variation.  No audio. */
 (() => {
   "use strict";
   const $ = (id) => document.getElementById(id);
   const pad2 = (n) => String(n).padStart(2, "0");
 
-  // Practice modes and how many pages each has under assets/<dir>/NN.webp
+  // Image pools: assets/<dir>/NN.webp
+  const POOLS = {
+    exercise: { dir: "assets/exercise", count: 30 },
+    rhythm:   { dir: "assets/rhythm",   count: 22 },
+    scale:    { dir: "assets/scale",    count: 11 },
+    arp:      { dir: "assets/arp",      count: 6 },
+  };
+  // A practice mode stacks one or more pools as rows.
   const MODES = [
-    { id: "rhythm", name: "Rhythm",    dir: "assets/rhythm", count: 22 },
-    { id: "scale",  name: "Scales",    dir: "assets/scale",  count: 11 },
-    { id: "arp",    name: "Arpeggios", dir: "assets/arp",    count: 6 },
+    { id: "rhythm", name: "Rhythm",    pools: ["exercise", "rhythm"] },
+    { id: "scale",  name: "Scales",    pools: ["scale"] },
+    { id: "arp",    name: "Arpeggios", pools: ["arp"] },
   ];
-  const files = (m) => Array.from({ length: m.count }, (_, i) => `${m.dir}/${pad2(i + 1)}.webp`);
 
   const SAVE_KEY = "hannon-sheet";
   let modeIdx = 0;
-  const lastFile = {};                       // remember current page per mode
+  const last = {};                           // last file shown per pool
 
   function load() {
     try {
@@ -25,39 +32,30 @@
       if (d && typeof d.modeIdx === "number") modeIdx = ((d.modeIdx % MODES.length) + MODES.length) % MODES.length;
     } catch (_) {}
   }
-  function save() {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ modeIdx })); } catch (_) {}
+  function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify({ modeIdx })); } catch (_) {} }
+
+  // Random file from a pool, avoiding an immediate repeat.
+  function pick(poolId) {
+    const p = POOLS[poolId];
+    let n;
+    do { n = 1 + ((Math.random() * p.count) | 0); } while (p.count > 1 && n === last[poolId]);
+    last[poolId] = n;
+    return `${p.dir}/${pad2(n)}.webp`;
   }
 
-  // Pick a random page for the mode, avoiding an immediate repeat.
-  function pick(m) {
-    const list = files(m);
-    if (list.length <= 1) return list[0];
-    let f;
-    do { f = list[(Math.random() * list.length) | 0]; } while (f === lastFile[m.id]);
-    lastFile[m.id] = f;
-    return f;
-  }
-
-  function show(newPage) {
+  function show() {
     const m = MODES[modeIdx];
-    const src = newPage || lastFile[m.id] || pick(m);
-    lastFile[m.id] = src;
     $("modeName").textContent = m.name;
-    const sheet = $("sheet");
-    sheet.innerHTML = `<img src="${src}" alt="Hanon — ${m.name}" decoding="async" />`;
+    $("sheet").innerHTML = m.pools
+      .map((pid) => `<img class="row" src="${pick(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
+      .join("");
     $("viewer").scrollTop = 0;
   }
 
-  function cycleMode() {
-    modeIdx = (modeIdx + 1) % MODES.length;
-    save();
-    show(pick(MODES[modeIdx]));
-  }
-  function shuffle() { show(pick(MODES[modeIdx])); }
+  function cycleMode() { modeIdx = (modeIdx + 1) % MODES.length; save(); show(); }
+  function shuffle() { show(); }
 
-  // Auto-hide the controls after a short idle so they don't sit on the music;
-  // any interaction brings them back.
+  // Auto-hide the controls after a short idle so they don't sit on the music.
   const IDLE_MS = 2600;
   let idleTimer = null;
   function wake() {
@@ -77,7 +75,7 @@
     });
     ["pointerdown", "touchstart", "mousemove", "scroll", "wheel"].forEach((ev) =>
       window.addEventListener(ev, wake, { passive: true }));
-    show(pick(MODES[modeIdx]));
+    show();
     wake();
   }
   document.addEventListener("DOMContentLoaded", init);

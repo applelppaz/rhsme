@@ -22,7 +22,7 @@ html, body {
   align-items: flex-start;
   padding: 0;
 }
-.sheet { width: 100%; display: flex; justify-content: center; }
+.sheet { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .sheet img {
   display: block;
   width: 100%;
