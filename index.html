@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1026" />
+  <title>Hannon — Rhythm · Scales · Arpeggios</title>
+  <meta name="description" content="Hannon: a minimal liquid-glass piano practice app — Hanon rhythm variations plus random scales and arpeggios in 4 octaves with fingering, adjustable tempo and an audio guide." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+  </div>
+
+  <main class="app glass">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l10-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="16" cy="16" r="3" />
+          </svg>
+        </span>
+        <h1>Hannon</h1>
+      </div>
+      <button id="settingsBtn" class="icon-btn ghost" aria-label="Settings" title="Settings">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Mode switcher -->
+    <nav class="modes glass-inset" role="tablist" aria-label="Practice mode">
+      <button class="mode-btn active" data-mode="rhythm" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-7 4 14 2-9 2 5h5"/></svg>
+        <span>Rhythm</span>
+      </button>
+      <button class="mode-btn" data-mode="scale" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h4v-4h4v-4h4V8h4V4"/></svg>
+        <span>Scale</span>
+      </button>
+      <button class="mode-btn" data-mode="arp" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2"/><circle cx="11" cy="13" r="2"/><circle cx="17" cy="8" r="2"/><path d="M6.7 16.7 9.3 14M12.7 11.7 15.3 9"/></svg>
+        <span>Arpeggio</span>
+      </button>
+    </nav>
+
+    <!-- Stage -->
+    <section class="stage glass-inset">
+      <div class="pattern-head">
+        <span id="patternName" class="pattern-name">Straight Sixteenths</span>
+        <span id="artiBadge" class="badge legato" title="Articulation">legato</span>
+      </div>
+      <div id="notation" class="notation" role="img" aria-label="Notation"></div>
+      <div class="pulse-row" id="pulseRow" aria-hidden="true"></div>
+    </section>
+
+    <!-- Transport -->
+    <section class="transport">
+      <button id="shuffleBtn" class="icon-btn" aria-label="Next random" title="Next random">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 3h5v5" /><path d="M4 20 21 3" /><path d="M21 16v5h-5" /><path d="M15 15l6 6" /><path d="M4 4l5 5" />
+        </svg>
+      </button>
+
+      <button id="playBtn" class="icon-btn primary" aria-label="Play" title="Play / Stop">
+        <svg class="i-play" viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+      </button>
+
+      <button id="poolBtn" class="icon-btn" aria-label="Choose pool" title="Choose pool">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+        </svg>
+      </button>
+    </section>
+
+    <!-- Tempo -->
+    <section class="tempo glass-inset">
+      <button id="bpmDown" class="icon-btn small ghost" aria-label="Slower" title="Slower">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      </button>
+      <div class="tempo-mid">
+        <div class="bpm-read"><span id="bpmValue">96</span><small>BPM</small></div>
+        <input id="tempo" type="range" min="40" max="208" value="96" step="1" aria-label="Tempo BPM" />
+      </div>
+      <button id="bpmUp" class="icon-btn small ghost" aria-label="Faster" title="Faster">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      </button>
+    </section>
+  </main>
+
+  <!-- Settings / pool panel -->
+  <div id="scrim" class="scrim" hidden></div>
+  <aside id="panel" class="panel glass" aria-hidden="true">
+    <div class="panel-head">
+      <h2 id="panelTitle">Rhythms</h2>
+      <button id="panelClose" class="icon-btn small ghost" aria-label="Close" title="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
+      </button>
+    </div>
+
+    <div class="panel-body">
+      <div class="pool-actions">
+        <button class="chip" data-pool="all">All</button>
+        <button class="chip" data-pool="none">None</button>
+      </div>
+      <div id="poolList" class="pool-list"></div>
+      <div id="keyList" class="pool-list" hidden></div>
+
+      <h3 class="section-title">Practice aids</h3>
+      <label class="switch-row">
+        <span><strong>Count-in</strong><small>One bar of clicks before start</small></span>
+        <input type="checkbox" id="optCountIn" />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <label class="switch-row">
+        <span><strong>Downbeat accent</strong><small>Stress the first beat of each bar</small></span>
+        <input type="checkbox" id="optAccent" checked />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <label class="switch-row">
+        <span><strong>Metronome click</strong><small>Quiet pulse under the guide</small></span>
+        <input type="checkbox" id="optClick" />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <label class="switch-row">
+        <span><strong>Auto random</strong><small>Pick a new one every few bars</small></span>
+        <input type="checkbox" id="optAutoShuffle" />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <label class="switch-row">
+        <span><strong>Tempo trainer</strong><small>Speed up automatically as you loop</small></span>
+        <input type="checkbox" id="optTrainer" />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <div class="stepper-row" id="trainerCfg">
+        <div class="stepper">
+          <label>+BPM</label>
+          <button class="icon-btn tiny ghost" data-step="trainerAmt" data-d="-1">–</button>
+          <span id="trainerAmt">4</span>
+          <button class="icon-btn tiny ghost" data-step="trainerAmt" data-d="1">+</button>
+        </div>
+        <div class="stepper">
+          <label>every bars</label>
+          <button class="icon-btn tiny ghost" data-step="trainerEvery" data-d="-1">–</button>
+          <span id="trainerEvery">4</span>
+          <button class="icon-btn tiny ghost" data-step="trainerEvery" data-d="1">+</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>
