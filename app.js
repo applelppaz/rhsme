@@ -9,9 +9,9 @@
 
   // Practice modes and how many pages each has under assets/<dir>/NN.webp
   const MODES = [
-    { id: "scale",    name: "Scales",    dir: "assets/scale",    count: 11 },
-    { id: "arp",      name: "Arpeggios", dir: "assets/arp",      count: 6 },
-    { id: "exercise", name: "Exercises", dir: "assets/exercise", count: 14 },
+    { id: "rhythm", name: "Rhythm",    dir: "assets/rhythm", count: 22 },
+    { id: "scale",  name: "Scales",    dir: "assets/scale",  count: 11 },
+    { id: "arp",    name: "Arpeggios", dir: "assets/arp",    count: 6 },
   ];
   const files = (m) => Array.from({ length: m.count }, (_, i) => `${m.dir}/${pad2(i + 1)}.webp`);
 
@@ -56,15 +56,29 @@
   }
   function shuffle() { show(pick(MODES[modeIdx])); }
 
+  // Auto-hide the controls after a short idle so they don't sit on the music;
+  // any interaction brings them back.
+  const IDLE_MS = 2600;
+  let idleTimer = null;
+  function wake() {
+    const c = $("controls");
+    c.classList.remove("faded");
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => c.classList.add("faded"), IDLE_MS);
+  }
+
   function init() {
     load();
-    $("modeBtn").addEventListener("click", cycleMode);
-    $("shuffleBtn").addEventListener("click", shuffle);
+    $("modeBtn").addEventListener("click", () => { cycleMode(); wake(); });
+    $("shuffleBtn").addEventListener("click", () => { shuffle(); wake(); });
     document.addEventListener("keydown", (e) => {
-      if (e.code === "Space" || e.code === "ArrowRight" || e.code === "ArrowDown") { e.preventDefault(); shuffle(); }
-      else if (e.code === "KeyM" || e.code === "Tab") { e.preventDefault(); cycleMode(); }
+      if (e.code === "Space" || e.code === "ArrowRight" || e.code === "ArrowDown") { e.preventDefault(); shuffle(); wake(); }
+      else if (e.code === "KeyM" || e.code === "Tab") { e.preventDefault(); cycleMode(); wake(); }
     });
+    ["pointerdown", "touchstart", "mousemove", "scroll", "wheel"].forEach((ev) =>
+      window.addEventListener(ev, wake, { passive: true }));
     show(pick(MODES[modeIdx]));
+    wake();
   }
   document.addEventListener("DOMContentLoaded", init);
 })();

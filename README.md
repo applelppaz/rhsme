@@ -1,11 +1,11 @@
 # Hannon — Practice Sheet
 
 A dead-simple practice-sheet viewer for the piano. One control cycles between
-**Scales**, **Arpeggios** and **Exercises**; each shows a page from Hanon's
+**Rhythm**, **Scales** and **Arpeggios**; each shows a page from Hanon's
 *The Virtuoso Pianist* (the public-domain G. Schirmer edition) chosen at
 random, as large as the screen allows. Built for **landscape** on the phone.
 
-- **Tap the mode button** to switch practice (Scales → Arpeggios → Exercises).
+- **Tap the mode button** to switch practice (Rhythm → Scales → Arpeggios).
 - **Tap shuffle** (or Space) for another page at random.
 - No audio — just the sheet, big.
 
