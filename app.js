@@ -84,12 +84,16 @@
   }
   const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
-  // Build a 4-octave run (ascending then descending). `thirds`=true → arpeggio.
+  // Build a 2-octave run (ascending then descending) for the RIGHT hand.
+  // `thirds`=true → arpeggio.  The tonic is placed near middle C so the
+  // grand staff stays readable (low tonics → octave 4, high tonics → 3).
+  // The closing duplicate of the start is dropped so the loop bars evenly
+  // (4 eighth-notes per 2/4 bar): 28 notes (scale) / 12 (arpeggio).
   function buildRun(key, thirds) {
     const up = [];
-    let letter = key.tonic, oct = key.startOct;
+    let letter = key.tonic, oct = key.tonic <= 3 ? 4 : 3;
     const perOct = thirds ? 3 : 7;
-    const total = perOct * 4;            // notes before the final top tonic
+    const total = perOct * 2;            // notes before the final top tonic
     const fng = thirds ? key.arpFng : key.scaleFng;
     const top = thirds ? key.arpTop : key.scaleTop;
     for (let i = 0; i <= total; i++) {
@@ -104,7 +108,7 @@
     }
     const down = [];
     for (let i = up.length - 2; i >= 0; i--) down.push({ ...up[i] });
-    return up.concat(down);
+    return up.concat(down).slice(0, -1);   // drop closing tonic → seamless loop
   }
 
   // ======================================================================
@@ -162,77 +166,145 @@
   }
 
   // ======================================================================
-  // STAFF renderer (treble clef, ledger lines, key signature, fingering).
-  // Notes wrap into stacked systems; each system is sized to its content.
+  // GRAND STAFF renderer — right hand (treble clef) over left hand (bass
+  // clef), the two hands two octaves apart as in Hanon's scales and
+  // arpeggios.  Even eighth-notes are barred in 2/4 (four per bar) and
+  // beamed by beat, with right-hand fingering.  Notes wrap into stacked
+  // systems; each system is sized to its content.
   // ======================================================================
-  const LG = 9;                          // staff line gap
-  const STAFF_REF = 30;                  // step of bottom line (E4)
+  const LG = 9;                              // staff line gap
   const W_STAFF = 660;
-  const PER_SYS = 16;
-  const yRel = (step) => -(step - STAFF_REF) * (LG / 2);   // relative to bottom line (0)
+  const NOTES_PER_BAR = 4;                   // a 2/4 bar = four eighth-notes
+  const BARS_PER_SYS = 3;
+  const TREBLE_LINES = [30, 32, 34, 36, 38]; // E4 G4 B4 D5 F5
+  const BASS_LINES = [18, 20, 22, 24, 26];   // G2 B2 D3 F3 A3
+  const yRel = (step) => -(step - 28) * (LG / 2);   // middle C (step 28) → 0
+  const range = (from, to, step) => {
+    const a = [];
+    if (step > 0) for (let s = from; s <= to; s += step) a.push(s);
+    else for (let s = from; s >= to; s += step) a.push(s);
+    return a;
+  };
 
   function escSig(key) {
     const steps = key.acc === "sharp" ? SHARP_STEPS : key.acc === "flat" ? FLAT_STEPS : [];
     return { glyph: key.acc === "sharp" ? "♯" : "♭", steps: steps.slice(0, key.n) };
   }
 
-  function renderSystem(items, key, yTop) {
-    // items: [{step, finger, idx}]
+  function renderGrandSystem(items, lay, yTop, isLast) {
+    // items: [{idx, rhStep, lhStep, finger}]
     const out = [];
-    const sig = escSig(key);
-    const clefX = 10;
-    const sigW = sig.steps.length * 10 + (sig.steps.length ? 8 : 0);
-    const x0 = clefX + 34 + sigW + 12;
-    const x1 = W_STAFF - 18;
-    const span = items.length > 1 ? (x1 - x0) / (items.length - 1) : 0;
-    const xOf = (i) => items.length > 1 ? x0 + i * span : (x0 + x1) / 2;
+    const { clefX, x0, noteStep, sig } = lay;
+    const xOf = (c) => x0 + c * noteStep;
+    const xEnd = xOf(items.length - 1) + noteStep * 0.6;
+    const headRx = LG * 0.62, headRy = LG * 0.46;
 
-    // vertical fit: gather y of notes (relative), staff lines, ledgers, fingering row
-    let minR = yRel(STAFF_REF + 8), maxR = yRel(STAFF_REF);      // staff top line .. bottom line
-    items.forEach((n) => { minR = Math.min(minR, yRel(n.step) - 8); maxR = Math.max(maxR, yRel(n.step) + 8); });
-    const fingerR = maxR + 16;
-    const topPad = 6;
-    const bottomLineY = yTop + topPad + (yRel(STAFF_REF) - minR);   // absolute y of E4 (bottom line)
-    const absY = (rel) => bottomLineY + (rel - yRel(STAFF_REF));
-    const yStep = (step) => absY(yRel(step));
-    const sysH = topPad + (maxR - minR) + 22;
-
-    // staff lines (E4,G4,B4,D5,F5 = steps 30,32,34,36,38)
-    for (let s = 30; s <= 38; s += 2) out.push(`<line class="staff-line" x1="${clefX}" y1="${yStep(s)}" x2="${x1}" y2="${yStep(s)}" stroke-width="1"/>`);
-    // clef
-    out.push(`<text class="clef-ink glyph" x="${clefX}" y="${yStep(30) + LG * 0.2}" font-size="${LG * 6.4}">𝄞</text>`);
-    // key signature
-    let sx = clefX + 36;
-    sig.steps.forEach((st) => { out.push(`<text class="sig-ink glyph" x="${sx}" y="${yStep(st) + LG * 1.05}" font-size="${LG * 3.1}">${sig.glyph}</text>`); sx += 10; });
-
-    items.forEach((n, i) => {
-      const cx = xOf(i), cy = yStep(n.step);
-      // ledger lines
-      if (n.step >= 40) for (let ls = 40; ls <= n.step; ls += 2) out.push(`<line class="ledger" x1="${cx - 8}" y1="${yStep(ls)}" x2="${cx + 8}" y2="${yStep(ls)}" stroke-width="1.1"/>`);
-      if (n.step <= 28) for (let ls = 28; ls >= n.step; ls -= 2) out.push(`<line class="ledger" x1="${cx - 8}" y1="${yStep(ls)}" x2="${cx + 8}" y2="${yStep(ls)}" stroke-width="1.1"/>`);
-      // stem
-      const down = n.step > 34;
-      const sxx = down ? cx - LG * 0.6 : cx + LG * 0.6;
-      const sy2 = down ? cy + LG * 3 : cy - LG * 3;
-      out.push(`<line class="note-ink" x1="${sxx}" y1="${cy}" x2="${sxx}" y2="${sy2}" stroke-width="1.7"/>`);
-      // head
-      out.push(`<ellipse class="note-head note-ink" data-idx="${n.idx}" cx="${cx}" cy="${cy}" rx="${LG * 0.62}" ry="${LG * 0.46}" transform="rotate(-20 ${cx} ${cy})"/>`);
-      // fingering
-      out.push(`<text class="finger" x="${cx}" y="${absY(fingerR) + 5}" font-size="${LG * 1.5}" text-anchor="middle">${n.finger}</text>`);
+    // vertical bounds (relative to middle C) — staff plus room for the
+    // furthest notes, their stems/beams and the fingering row.
+    let relTop = yRel(38) - LG, relBot = yRel(18) + LG;
+    items.forEach((n) => {
+      relTop = Math.min(relTop, yRel(n.rhStep) - LG * 4.4);
+      relBot = Math.max(relBot, yRel(n.lhStep) + LG * 4.4);
     });
-    return { svg: out.join(""), height: sysH };
+    const topPad = 8, botPad = 10;
+    const absY = (rel) => yTop + topPad + (rel - relTop);
+    const height = topPad + (relBot - relTop) + botPad;
+    const yTrebleTop = absY(yRel(38)), yTrebleBot = absY(yRel(30));
+    const yBassBot = absY(yRel(18));
+
+    // staff lines
+    TREBLE_LINES.concat(BASS_LINES).forEach((s) =>
+      out.push(`<line class="staff-line" x1="${clefX}" y1="${absY(yRel(s))}" x2="${xEnd}" y2="${absY(yRel(s))}" stroke-width="1"/>`));
+    // left system barline + brace joining the two staves
+    out.push(`<line class="staff-line" x1="${clefX}" y1="${yTrebleTop}" x2="${clefX}" y2="${yBassBot}" stroke-width="1.4"/>`);
+    const mid = (yTrebleTop + yBassBot) / 2;
+    out.push(`<path class="brace-ink" d="M ${clefX - 5} ${yTrebleTop} C ${clefX - 13} ${yTrebleTop + LG} ${clefX - 13} ${mid - LG} ${clefX - 5} ${mid} C ${clefX - 13} ${mid + LG} ${clefX - 13} ${yBassBot - LG} ${clefX - 5} ${yBassBot}" fill="none" stroke-width="2"/>`);
+
+    // clefs
+    out.push(`<text class="clef-ink glyph" x="${clefX + 5}" y="${yTrebleBot + LG * 0.25}" font-size="${LG * 6.4}">𝄞</text>`);
+    out.push(`<text class="clef-ink glyph" x="${clefX + 5}" y="${absY(yRel(24)) + LG * 1.25}" font-size="${LG * 4.0}">𝄢</text>`);
+
+    // key signature (mirrored two octaves apart on the bass staff)
+    let sx = clefX + 38;
+    sig.steps.forEach((st) => {
+      out.push(`<text class="sig-ink glyph" x="${sx}" y="${absY(yRel(st)) + LG * 1.05}" font-size="${LG * 3.0}">${sig.glyph}</text>`);
+      out.push(`<text class="sig-ink glyph" x="${sx}" y="${absY(yRel(st - 14)) + LG * 1.05}" font-size="${LG * 3.0}">${sig.glyph}</text>`);
+      sx += 9;
+    });
+    // time signature 2/4 on both staves
+    const tsx = sx + 9;
+    [[36, 32], [22, 18]].forEach(([up, lo]) => {
+      out.push(`<text class="sig-ink ts" x="${tsx}" y="${absY(yRel(up)) + LG * 0.55}" font-size="${LG * 2.3}" text-anchor="middle">2</text>`);
+      out.push(`<text class="sig-ink ts" x="${tsx}" y="${absY(yRel(lo)) + LG * 0.55}" font-size="${LG * 2.3}" text-anchor="middle">4</text>`);
+    });
+
+    // barlines between bars + final barline
+    const nBars = Math.ceil(items.length / NOTES_PER_BAR);
+    for (let b = 1; b < nBars; b++) {
+      const bx = xOf(b * NOTES_PER_BAR) - noteStep * 0.5;
+      out.push(`<line class="staff-line" x1="${bx}" y1="${yTrebleTop}" x2="${bx}" y2="${yBassBot}" stroke-width="1"/>`);
+    }
+    out.push(`<line class="staff-line" x1="${xEnd}" y1="${yTrebleTop}" x2="${xEnd}" y2="${yBassBot}" stroke-width="${isLast ? 2.6 : 1}"/>`);
+    if (isLast) out.push(`<line class="staff-line" x1="${xEnd - 4}" y1="${yTrebleTop}" x2="${xEnd - 4}" y2="${yBassBot}" stroke-width="1"/>`);
+
+    // ledger helper
+    const ledger = (cx, lines) => lines.forEach((ls) =>
+      out.push(`<line class="ledger" x1="${cx - headRx - 3}" y1="${absY(yRel(ls))}" x2="${cx + headRx + 3}" y2="${absY(yRel(ls))}" stroke-width="1.1"/>`));
+
+    // note heads, ledgers and right-hand fingering
+    items.forEach((n, c) => {
+      const cx = xOf(c);
+      const ry = absY(yRel(n.rhStep));
+      if (n.rhStep >= 40) ledger(cx, range(40, n.rhStep, 2));
+      if (n.rhStep <= 28) ledger(cx, range(28, n.rhStep, -2));
+      out.push(`<ellipse class="note-head note-ink" data-idx="${n.idx}" cx="${cx}" cy="${ry}" rx="${headRx}" ry="${headRy}" transform="rotate(-20 ${cx} ${ry})"/>`);
+      out.push(`<text class="finger" x="${cx}" y="${ry - LG * 1.7}" font-size="${LG * 1.45}" text-anchor="middle">${n.finger}</text>`);
+      const ly = absY(yRel(n.lhStep));
+      if (n.lhStep <= 16) ledger(cx, range(16, n.lhStep, -2));
+      if (n.lhStep >= 28) ledger(cx, range(28, n.lhStep, 2));
+      out.push(`<ellipse class="note-head note-ink" data-idx="${n.idx}" cx="${cx}" cy="${ly}" rx="${headRx}" ry="${headRy}" transform="rotate(-20 ${cx} ${ly})"/>`);
+    });
+
+    // stems + beams, beat by beat (pairs of eighths), each hand on its staff
+    const beamHand = (stepKey, middleStep) => {
+      for (let i = 0; i + 1 < items.length; i += 2) {
+        const ax = xOf(i), bx = xOf(i + 1);
+        const aS = items[i][stepKey], bS = items[i + 1][stepKey];
+        const ay = absY(yRel(aS)), by = absY(yRel(bS));
+        const down = (aS + bS) / 2 >= middleStep;
+        const sa = down ? ax - headRx : ax + headRx;
+        const sb = down ? bx - headRx : bx + headRx;
+        const stemLen = LG * 3.1;
+        const beamY = down ? Math.max(ay, by) + stemLen : Math.min(ay, by) - stemLen;
+        out.push(`<line class="note-ink" x1="${sa}" y1="${ay}" x2="${sa}" y2="${beamY}" stroke-width="1.6"/>`);
+        out.push(`<line class="note-ink" x1="${sb}" y1="${by}" x2="${sb}" y2="${beamY}" stroke-width="1.6"/>`);
+        out.push(`<rect class="note-ink" x="${Math.min(sa, sb)}" y="${down ? beamY - LG * 0.5 : beamY}" width="${Math.abs(sb - sa)}" height="${LG * 0.5}" stroke="none"/>`);
+      }
+    };
+    beamHand("rhStep", 34);   // treble middle line = B4
+    beamHand("lhStep", 22);   // bass middle line = D3
+
+    return { svg: out.join(""), height };
   }
 
-  function renderStaff(run) {
+  function renderGrand(run) {
     const key = keyById(state.scaleKey);
-    let idx = 0;
-    const withIdx = run.map((n) => ({ ...n, idx: idx++ }));
+    const items = run.map((n, i) => ({ idx: i, rhStep: n.step, lhStep: n.step - 14, finger: n.finger }));
+    const sig = escSig(key);
+    const clefX = 8;
+    const sigW = sig.steps.length * 9 + (sig.steps.length ? 6 : 0);
+    const x0 = clefX + 50 + sigW + 26;          // after clef, key sig and time sig
+    const perSys = BARS_PER_SYS * NOTES_PER_BAR;
+    const noteStep = (W_STAFF - x0 - 20) / perSys;
+    const lay = { clefX, x0, noteStep, sig };
     const systems = [];
-    for (let i = 0; i < withIdx.length; i += PER_SYS) systems.push(withIdx.slice(i, i + PER_SYS));
-    let y = 8, body = "";
-    systems.forEach((items) => { const r = renderSystem(items, key, y); body += r.svg; y += r.height; });
-    const H = y + 6;
-    return `<svg viewBox="0 0 ${W_STAFF} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+    for (let i = 0; i < items.length; i += perSys) systems.push(items.slice(i, i + perSys));
+    let y = 6, body = "";
+    systems.forEach((s, i) => {
+      const r = renderGrandSystem(s, lay, y, i === systems.length - 1);
+      body += r.svg; y += r.height;
+    });
+    return `<svg viewBox="0 0 ${W_STAFF} ${y + 6}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
   }
 
   // ======================================================================
@@ -328,7 +400,7 @@
       const onBeat = (i * dur) % 1 === 0;
       let vel = onBeat ? 0.5 : 0.4;
       if (state.opts.accent && onBeat) vel = Math.max(vel, 0.6);
-      return { tBeat: i * dur, durBeat: dur, freq: midiToFreq(n.midi), vel, staccato: false, pulseBeat: onBeat ? i * dur : null, noteIdx: i };
+      return { tBeat: i * dur, durBeat: dur, freq: midiToFreq(n.midi), freq2: midiToFreq(n.midi - 24), vel, staccato: false, pulseBeat: onBeat ? i * dur : null, noteIdx: i };
     });
     return { events, loopBeats: run.length * dur };
   }
@@ -366,6 +438,7 @@
       const ev = seq.events[evIdx];
       const at = loopStart + ev.tBeat * secBeat;
       playTone(at, ev.durBeat * secBeat, ev.freq, ev.vel, ev.staccato);
+      if (ev.freq2) playTone(at, ev.durBeat * secBeat, ev.freq2, ev.vel * 0.85, ev.staccato);
       if (ev.pulseBeat !== null) { const beat = ev.pulseBeat % BEATS; if (state.opts.click) playClick(at, beat === 0 && state.opts.accent); flashAt(at, beat, beat === 0 && state.opts.accent); }
       if (state.mode !== "rhythm") highlightAt(at, ev.noteIdx);
       evIdx++;
@@ -423,11 +496,11 @@
     } else {
       currentRun = buildRun(keyById(state.scaleKey), state.mode === "arp");
       els.notation.classList.add("staff");
-      els.notation.innerHTML = renderStaff(currentRun);
+      els.notation.innerHTML = renderGrand(currentRun);
       const k = keyById(state.scaleKey);
       els.patternName.textContent = `${k.name} Major ${state.mode === "arp" ? "Arpeggio" : "Scale"}`;
       els.artiBadge.hidden = false;
-      els.artiBadge.textContent = "4 oct";
+      els.artiBadge.textContent = "2 oct · both hands";
       els.artiBadge.className = "badge legato";
       els.pulseRow.style.display = "none";
     }
@@ -460,8 +533,7 @@
     setTimeout(() => {
       if (!state.playing) return;
       clearHighlight();
-      const h = els.notation.querySelector(`.note-head[data-idx="${idx}"]`);
-      if (h) h.classList.add("active");
+      els.notation.querySelectorAll(`.note-head[data-idx="${idx}"]`).forEach((h) => h.classList.add("active"));
     }, delay);
   }
 

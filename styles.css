@@ -161,6 +161,8 @@ body {
 .ledger { stroke: rgba(255,255,255,0.55); }
 .finger { fill: var(--accent); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 700; }
 .clef-ink, .sig-ink { fill: var(--ink); }
+.brace-ink { stroke: rgba(255,255,255,0.55); fill: none; }
+.sig-ink.ts { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 800; }
 .note-head.active { fill: var(--accent-2); stroke: var(--accent-2); }
 .sys-label { fill: var(--ink-dim); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
 

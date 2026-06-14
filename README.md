@@ -14,11 +14,13 @@ articulation, and shows the **rhythm notation** of whatever is playing. Choose
 which rhythms the random picker draws from.
 
 ### 🎼 Scale  ·  🎹 Arpeggio
-Picks a **random key** and shows that **major scale / arpeggio over 4 octaves**
-as real sheet music (treble clef, key signature, ledger lines) **with right-hand
-fingering numbers**. The audio guide plays the notes ascending and descending,
-and the current note is highlighted as it sounds. Choose which keys are in the
-random pool.
+Picks a **random key** and shows that **major scale / arpeggio over 2 octaves**
+as real sheet music on a **grand staff** — right hand in the treble clef over
+left hand in the bass clef, two octaves apart as in Hanon — barred in 2/4,
+beamed by beat, with key signature, ledger lines and **right-hand fingering
+numbers**. The audio guide plays both hands ascending and descending, and the
+current note is highlighted as it sounds. Choose which keys are in the random
+pool.
 
 ## Shared controls
 
@@ -52,7 +54,7 @@ Audio starts after the first click/tap (browser autoplay policy).
 
 Pure HTML + CSS + vanilla JS — no build step, no framework, no bundler.
 - `app.js` — rhythm patterns, scale/arpeggio theory + fingering, an SVG rhythm
-  renderer and a treble-clef **staff renderer**, the Web Audio scheduler, and UI.
+  renderer and a **grand-staff renderer** (treble + bass clef), the Web Audio scheduler, and UI.
 - `styles.css` — liquid-glass UI.
 - Clefs and accidentals use the **Noto Music** web font (Google Fonts).
 - `icons/`, `favicon.svg`, `manifest.webmanifest` — app icon / PWA.
@@ -61,7 +63,7 @@ Pure HTML + CSS + vanilla JS — no build step, no framework, no bundler.
 
 - Rhythm patterns and fingerings are **data-driven** (`PATTERNS` and `KEYS` in
   `app.js`), so they are easy to adjust or extend.
-- Scales/arpeggios cover the 12 **major** keys with right-hand fingerings
+- Scales/arpeggios cover the 12 **major** keys, both hands, with right-hand fingerings
   following Hanon, *The Virtuoso Pianist* (Ex. 39 scales, Ex. 41 arpeggios) —
   e.g. white-key arpeggios use 1·2·3, and black-key roots use the 2·1·2·4 shape.
   Minor keys can be added later (the `KEYS` table is data-driven).
