@@ -46,8 +46,11 @@
   function show() {
     const m = MODES[modeIdx];
     $("modeName").textContent = m.name;
-    $("sheet").innerHTML = m.pools
-      .map((pid) => `<img class="row" src="${pick(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
+    const sheet = $("sheet");
+    sheet.className = "sheet " + (m.pools.length > 1 ? "two-row" : "one-page");
+    const cls = { exercise: "ex", rhythm: "ry", scale: "page", arp: "page" };
+    sheet.innerHTML = m.pools
+      .map((pid) => `<img class="${cls[pid] || "page"}" src="${pick(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
       .join("");
     $("viewer").scrollTop = 0;
   }
