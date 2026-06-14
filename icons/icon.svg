@@ -1,49 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#5b7bff"/>
-      <stop offset="0.55" stop-color="#7a5bff"/>
-      <stop offset="1" stop-color="#b15bff"/>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d8bd86"/>
+      <stop offset="0.5" stop-color="#cbab6f"/>
+      <stop offset="1" stop-color="#bd9a5c"/>
     </linearGradient>
-    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.08"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#dfe6ff"/>
-    </linearGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6"/>
-    </filter>
   </defs>
-
-  <!-- glass squircle -->
-  <rect x="36" y="36" width="440" height="440" rx="112" fill="url(#bg)"/>
-  <rect x="36" y="36" width="440" height="440" rx="112" fill="url(#glass)"/>
-  <!-- frosted inner ring -->
-  <rect x="52" y="52" width="408" height="408" rx="100" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>
-  <!-- glossy highlight -->
-  <path d="M88 150 Q256 70 424 150 Q360 120 256 120 Q152 120 88 150 Z" fill="#ffffff" opacity="0.35" filter="url(#soft)"/>
-
-  <!-- metronome body -->
-  <g>
-    <path d="M256 132 L330 392 L182 392 Z" fill="url(#metal)" opacity="0.96"/>
-    <path d="M256 132 L330 392 L256 392 Z" fill="#cfd8ff" opacity="0.9"/>
-    <!-- scale slot -->
-    <rect x="247" y="176" width="18" height="170" rx="9" fill="#4a3bbf" opacity="0.85"/>
-    <!-- swinging rod -->
-    <line x1="256" y1="356" x2="316" y2="176" stroke="#2b2566" stroke-width="12" stroke-linecap="round"/>
-    <circle cx="316" cy="176" r="20" fill="#ffd166" stroke="#2b2566" stroke-width="8"/>
-    <circle cx="256" cy="356" r="12" fill="#2b2566"/>
-    <!-- pivot weight -->
-    <rect x="300" y="300" width="40" height="22" rx="6" fill="#2b2566" transform="rotate(18 320 311)"/>
+  <!-- aged cover -->
+  <rect width="512" height="512" fill="url(#paper)"/>
+  <!-- ornamental double border -->
+  <rect x="34" y="34" width="444" height="444" fill="none" stroke="#4a3617" stroke-width="9"/>
+  <rect x="52" y="52" width="408" height="408" fill="none" stroke="#4a3617" stroke-width="3"/>
+  <!-- corner diamonds -->
+  <g fill="#4a3617">
+    <path d="M43 43 l12 0 0 12 -12 0 z" transform="rotate(45 49 49)"/>
+    <path d="M457 43 l12 0 0 12 -12 0 z" transform="rotate(45 463 49)"/>
+    <path d="M43 457 l12 0 0 12 -12 0 z" transform="rotate(45 49 463)"/>
+    <path d="M457 457 l12 0 0 12 -12 0 z" transform="rotate(45 463 463)"/>
   </g>
-
-  <!-- eighth note accent -->
-  <g transform="translate(150 250)">
-    <path d="M0 96 V8 L40 0 V14 L12 20 V96" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-    <ellipse cx="-6" cy="100" rx="20" ry="15" fill="#ffffff" transform="rotate(-20 -6 100)"/>
+  <!-- top rule + label -->
+  <line x1="96" y1="120" x2="416" y2="120" stroke="#4a3617" stroke-width="2"/>
+  <text x="256" y="106" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" letter-spacing="6" fill="#4a3617">SCHIRMER</text>
+  <!-- title -->
+  <text x="256" y="262" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="96" letter-spacing="3" fill="#2f2110">HANON</text>
+  <!-- subtitle -->
+  <text x="256" y="322" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="30" fill="#4a3617">The Virtuoso Pianist</text>
+  <!-- bottom rule + a pair of eighth-notes -->
+  <line x1="96" y1="368" x2="416" y2="368" stroke="#4a3617" stroke-width="2"/>
+  <g fill="#2f2110">
+    <ellipse cx="228" cy="430" rx="17" ry="12" transform="rotate(-20 228 430)"/>
+    <ellipse cx="288" cy="416" rx="17" ry="12" transform="rotate(-20 288 416)"/>
+    <rect x="242" y="358" width="6" height="74"/>
+    <rect x="302" y="344" width="6" height="74"/>
+    <path d="M242 358 L308 344 L308 362 L242 376 Z"/>
   </g>
 </svg>

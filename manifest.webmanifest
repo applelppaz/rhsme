@@ -1,13 +1,13 @@
 {
-  "name": "Hanon Rhythm Trainer",
-  "short_name": "Hanon Rhythm",
-  "description": "A minimal liquid-glass rhythm guide for Hanon piano practice.",
+  "name": "Hannon — Practice Sheet",
+  "short_name": "Hannon",
+  "description": "A clean black-and-white Hanon practice sheet: rhythm, scales and arpeggios with a metronome. Optimised for landscape.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#070a1a",
-  "theme_color": "#0b1026",
+  "orientation": "landscape",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
