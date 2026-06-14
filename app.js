@@ -130,8 +130,8 @@
     out.push(`<line class="staff-ink" x1="${g.W - g.padR}" y1="${g.baseY - 22}" x2="${g.W - g.padR}" y2="${g.baseY + 14}" stroke-width="${g.stroke * 0.5}"/>`);
     if (g.timeSig) {
       const tx = g.padL - 30;
-      out.push(`<text x="${tx}" y="${g.baseY - 6}" font-size="${g.fontTS}" font-weight="700" text-anchor="middle" fill="rgba(255,255,255,0.55)">2</text>`);
-      out.push(`<text x="${tx}" y="${g.baseY + 18}" font-size="${g.fontTS}" font-weight="700" text-anchor="middle" fill="rgba(255,255,255,0.55)">4</text>`);
+      out.push(`<text class="ts-ink" x="${tx}" y="${g.baseY - 6}" font-size="${g.fontTS}" font-weight="700" text-anchor="middle">2</text>`);
+      out.push(`<text class="ts-ink" x="${tx}" y="${g.baseY + 18}" font-size="${g.fontTS}" font-weight="700" text-anchor="middle">4</text>`);
     }
     const N = notes.map((n) => { const cx = xOf(n.t16, n.dur16); return { ...n, cx, stemX: cx + g.stemDx, nb: nBeams(n.dur16, n.tuplet), dots: nDots(n.dur16) }; });
     N.forEach((n) => {
@@ -172,10 +172,9 @@
   // beamed by beat, with right-hand fingering.  Notes wrap into stacked
   // systems; each system is sized to its content.
   // ======================================================================
-  const LG = 9;                              // staff line gap
-  const W_STAFF = 660;
+  const LG = 10;                             // staff line gap
   const NOTES_PER_BAR = 4;                   // a 2/4 bar = four eighth-notes
-  const BARS_PER_SYS = 3;
+  const NOTE_STEP = 40;                      // horizontal px between notes
   const TREBLE_LINES = [30, 32, 34, 36, 38]; // E4 G4 B4 D5 F5
   const BASS_LINES = [18, 20, 22, 24, 26];   // G2 B2 D3 F3 A3
   const yRel = (step) => -(step - 28) * (LG / 2);   // middle C (step 28) → 0
@@ -287,15 +286,20 @@
     return { svg: out.join(""), height };
   }
 
-  function renderGrand(run) {
+  function renderGrand(run, width) {
     const key = keyById(state.scaleKey);
     const items = run.map((n, i) => ({ idx: i, rhStep: n.step, lhStep: n.step - 14, finger: n.finger }));
     const sig = escSig(key);
     const clefX = 8;
     const sigW = sig.steps.length * 9 + (sig.steps.length ? 6 : 0);
     const x0 = clefX + 50 + sigW + 26;          // after clef, key sig and time sig
-    const perSys = BARS_PER_SYS * NOTES_PER_BAR;
-    const noteStep = (W_STAFF - x0 - 20) / perSys;
+    // fit as many whole bars per system as the available width allows so the
+    // staff stays crisp (≈NOTE_STEP px/note) and short in landscape.
+    const W = clamp(width || 680, 320, 1500);
+    const totalBars = Math.ceil(items.length / NOTES_PER_BAR);
+    const barsPerSys = clamp(Math.floor((W - x0 - 18) / (NOTES_PER_BAR * NOTE_STEP)), 1, totalBars);
+    const perSys = barsPerSys * NOTES_PER_BAR;
+    const noteStep = (W - x0 - 18) / perSys;
     const lay = { clefX, x0, noteStep, sig };
     const systems = [];
     for (let i = 0; i < items.length; i += perSys) systems.push(items.slice(i, i + perSys));
@@ -304,7 +308,7 @@
       const r = renderGrandSystem(s, lay, y, i === systems.length - 1);
       body += r.svg; y += r.height;
     });
-    return `<svg viewBox="0 0 ${W_STAFF} ${y + 6}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+    return `<svg viewBox="0 0 ${W} ${y + 6}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
   }
 
   // ======================================================================
@@ -329,21 +333,24 @@
     gain.gain.exponentialRampToValueAtTime(0.0006, time + gate);
     osc.start(time); osc.stop(time + gate + 0.03);
   }
+  // A crisp wood-block-like metronome tick.  The downbeat (accent) is a
+  // higher, louder click so the head of the bar is unmistakable.
   function playClick(time, accent) {
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = "square"; osc.frequency.value = accent ? 2000 : 1400;
-    osc.connect(gain); gain.connect(master);
-    const v = accent ? 0.16 : 0.09;
+    const osc = ctx.createOscillator(), gain = ctx.createGain(), bp = ctx.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = accent ? 2600 : 1500; bp.Q.value = 6;
+    osc.type = "square"; osc.frequency.value = accent ? 2600 : 1500;
+    osc.connect(bp); bp.connect(gain); gain.connect(master);
+    const v = accent ? 0.5 : 0.26;
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.linearRampToValueAtTime(v, time + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.0005, time + 0.04);
-    osc.start(time); osc.stop(time + 0.06);
+    gain.gain.linearRampToValueAtTime(v, time + 0.001);
+    gain.gain.exponentialRampToValueAtTime(0.0004, time + (accent ? 0.05 : 0.035));
+    osc.start(time); osc.stop(time + 0.07);
   }
 
   // ======================================================================
   // State + persistence.
   // ======================================================================
-  const SAVE_KEY = "hannon-v2";
+  const SAVE_KEY = "hannon-v3";
   const state = {
     mode: "rhythm",
     bpm: 96,
@@ -351,7 +358,7 @@
     scaleKey: "C",
     patEnabled: new Set(PATTERNS.map((p) => p.id)),
     keyEnabled: new Set(KEYS.map((k) => k.id)),
-    opts: { countIn: false, accent: true, click: false, autoShuffle: false, trainer: false, trainerAmt: 4, trainerEvery: 4 },
+    opts: { countIn: true, accent: true, click: true, autoShuffle: false, trainer: false, trainerAmt: 4, trainerEvery: 4 },
     playing: false,
   };
   function save() {
@@ -492,17 +499,16 @@
       els.artiBadge.hidden = false;
       els.artiBadge.textContent = state.pattern.art;
       els.artiBadge.className = "badge " + state.pattern.art;
-      els.pulseRow.style.display = "";
     } else {
       currentRun = buildRun(keyById(state.scaleKey), state.mode === "arp");
       els.notation.classList.add("staff");
-      els.notation.innerHTML = renderGrand(currentRun);
+      const w = els.notation.clientWidth || 680;
+      els.notation.innerHTML = renderGrand(currentRun, w);
       const k = keyById(state.scaleKey);
       els.patternName.textContent = `${k.name} Major ${state.mode === "arp" ? "Arpeggio" : "Scale"}`;
       els.artiBadge.hidden = false;
       els.artiBadge.textContent = "2 oct · both hands";
       els.artiBadge.className = "badge legato";
-      els.pulseRow.style.display = "none";
     }
   }
   function reflectTempo() {
@@ -578,6 +584,7 @@
     els.optCountIn.checked = state.opts.countIn; els.optAccent.checked = state.opts.accent;
     els.optClick.checked = state.opts.click; els.optAutoShuffle.checked = state.opts.autoShuffle;
     els.optTrainer.checked = state.opts.trainer;
+    if (els.metroBtn) els.metroBtn.setAttribute("aria-pressed", String(state.opts.click));
     $("trainerAmt").textContent = state.opts.trainerAmt; $("trainerEvery").textContent = state.opts.trainerEvery;
     $("trainerCfg").classList.toggle("dim", !state.opts.trainer);
   }
@@ -593,7 +600,7 @@
   }
 
   function init() {
-    ["notation", "patternName", "artiBadge", "pulseRow", "playBtn", "shuffleBtn", "poolBtn", "settingsBtn",
+    ["notation", "patternName", "artiBadge", "pulseRow", "playBtn", "shuffleBtn", "poolBtn", "settingsBtn", "metroBtn",
       "tempo", "bpmValue", "bpmUp", "bpmDown", "panel", "scrim", "panelClose", "panelTitle", "poolList", "keyList",
       "optCountIn", "optAccent", "optClick", "optAutoShuffle", "optTrainer"].forEach((id) => (els[id] = $(id)));
 
@@ -604,7 +611,14 @@
 
     els.playBtn.addEventListener("click", () => state.playing ? stopPlayback() : startPlayback(false));
     els.shuffleBtn.addEventListener("click", shuffle);
+    els.metroBtn.addEventListener("click", () => { state.opts.click = !state.opts.click; reflectOpts(); save(); });
     document.querySelectorAll(".mode-btn").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+
+    // re-fit the staff when the viewport changes (e.g. rotate to landscape)
+    let rT = null;
+    const refit = () => { clearTimeout(rT); rT = setTimeout(() => { if (state.mode !== "rhythm") renderCurrent(); }, 160); };
+    window.addEventListener("resize", refit);
+    window.addEventListener("orientationchange", refit);
 
     els.tempo.addEventListener("input", () => { state.bpm = parseInt(els.tempo.value, 10); reflectTempo(); });
     els.tempo.addEventListener("change", save);

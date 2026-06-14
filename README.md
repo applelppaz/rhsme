@@ -1,8 +1,9 @@
 # Hannon
 
-A minimal, **liquid-glass** piano-practice app with three modes — **Rhythm**,
-**Scale** and **Arpeggio** — and an audio guide. Built as a single static page
-with no runtime dependencies.
+A minimal, **black-and-white paper-sheet** piano-practice app with three modes —
+**Rhythm**, **Scale** and **Arpeggio** — a clear metronome and an audio guide.
+Optimised for **iPhone landscape**. Built as a single static page with no
+runtime dependencies.
 
 ## Modes
 
