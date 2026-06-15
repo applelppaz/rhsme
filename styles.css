@@ -42,8 +42,11 @@ html, body {
 /* ---- floating controls: top-right, out of the staff, auto-hiding ---- */
 .controls {
   position: fixed;
-  top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
+  top: 0; right: 0; left: auto; bottom: auto;
+  transform-origin: top right;       /* JS pins it to the visual viewport so
+                                        pinch-zoom doesn't scale or move it */
+  transform: translate(-14px, 14px);
+  will-change: transform;
   display: flex;
   gap: 8px;
   padding: 6px;
@@ -54,7 +57,7 @@ html, body {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   opacity: 1;
-  transition: opacity .55s ease;
+  transition: opacity .5s ease;
 }
 .controls.faded { opacity: 0; pointer-events: none; }
 .ctl {

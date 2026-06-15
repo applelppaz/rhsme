@@ -87,13 +87,24 @@
   }
 
   // Auto-hide the controls after a short idle so they don't sit on the music.
-  const IDLE_MS = 2600;
+  const IDLE_MS = 1500;
   let idleTimer = null;
   function wake() {
     const c = $("controls");
     c.classList.remove("faded");
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => c.classList.add("faded"), IDLE_MS);
+  }
+
+  // Keep the controls a constant size and in the top-right of the *visible*
+  // area, so pinch-zooming the sheet never scales or shifts them.
+  const M = 14;
+  function anchorControls() {
+    const c = $("controls"), vv = window.visualViewport;
+    if (!vv) { c.style.transform = `translate(-${M}px, ${M}px)`; return; }
+    const dx = (vv.offsetLeft + vv.width - M) - document.documentElement.clientWidth;
+    const dy = vv.offsetTop + M;
+    c.style.transform = `translate(${dx}px, ${dy}px) scale(${1 / vv.scale})`;
   }
 
   // Vertical swipe → prev/next (when the sheet isn't being scrolled).
@@ -123,7 +134,14 @@
     });
     ["pointerdown", "mousemove", "scroll", "wheel"].forEach((ev) =>
       window.addEventListener(ev, wake, { passive: true }));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", anchorControls);
+      window.visualViewport.addEventListener("scroll", anchorControls);
+    }
+    window.addEventListener("resize", anchorControls);
+    window.addEventListener("orientationchange", anchorControls);
     show();
+    anchorControls();
     wake();
   }
   document.addEventListener("DOMContentLoaded", init);
