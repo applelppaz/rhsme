@@ -13,7 +13,7 @@
     exercise: { dir: "assets/exercise", count: 30 },
     rhythm:   { dir: "assets/rhythm",   count: 22 },
     scale:    { dir: "assets/scale",    count: 36 },
-    arp:      { dir: "assets/arp",      count: 18 },
+    arp:      { dir: "assets/arp",      count: 24 },
   };
   const MODES = [
     { id: "rhythm", name: "Rhythm",    pools: ["exercise", "rhythm"] },
