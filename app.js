@@ -14,11 +14,17 @@
     rhythm:   { dir: "assets/rhythm",   count: 22 },
     scale:    { dir: "assets/scale",    count: 36 },
     arp:      { dir: "assets/arp",      count: 24 },
+    trill:    { dir: "assets/trill",    count: 26 },
+    octave:   { dir: "assets/octave",   count: 11 },
+    etc:      { dir: "assets/etc",      count: 16 },
   };
   const MODES = [
     { id: "rhythm", name: "Rhythm",    pools: ["exercise", "rhythm"] },
     { id: "scale",  name: "Scales",    pools: ["scale"] },
     { id: "arp",    name: "Arpeggios", pools: ["arp"] },
+    { id: "trill",  name: "Trills",    pools: ["trill"] },
+    { id: "octave", name: "Octaves",   pools: ["octave"] },
+    { id: "etc",    name: "More",      pools: ["etc"] },
   ];
 
   const SAVE_KEY = "hannon-sheet";
