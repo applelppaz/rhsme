@@ -28,6 +28,7 @@ html, body {
   padding: 10px 10px 10px max(14px, env(safe-area-inset-left));
 }
 .sheet.two-row { justify-content: center; }   /* keep both rows on screen */
+.sheet.scroll { justify-content: flex-start; gap: 12px; padding-bottom: 36px; }  /* whole section, scroll through */
 .sheet img {
   display: block; height: auto;
   background: #fff;                            /* padding blends into the white page */
