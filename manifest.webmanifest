@@ -1,5 +1,5 @@
 {
-  "name": "Hannon — Practice Sheet",
+  "name": "Hannon \u2014 Practice Sheet",
   "short_name": "Hannon",
   "description": "A clean black-and-white Hanon practice sheet: rhythm, scales and arpeggios with a metronome. Optimised for landscape.",
   "start_url": "./",
@@ -7,8 +7,13 @@
   "display": "standalone",
   "orientation": "landscape",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#1c1c1e",
   "icons": [
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
