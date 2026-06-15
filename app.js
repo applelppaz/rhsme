@@ -19,12 +19,12 @@
     etc:      { dir: "assets/etc",      count: 23 },
   };
   const MODES = [
-    { id: "rhythm", name: "Rhythm",    pools: ["exercise", "rhythm"] },
+    { id: "rhythm", name: "Rhythm",    pools: ["rhythm", "exercise"], scroll: true },
     { id: "scale",  name: "Scales",    pools: ["scale"] },
     { id: "arp",    name: "Arpeggios", pools: ["arp"] },
-    { id: "trill",  name: "Trills",    pools: ["trill"],  scroll: true },
-    { id: "octave", name: "Octaves",   pools: ["octave"], scroll: true },
-    { id: "etc",    name: "More",      pools: ["etc"],    scroll: true },
+    { id: "trill",  name: "Trills",    pools: ["trill"],  scroll: true, section: true },
+    { id: "octave", name: "Octaves",   pools: ["octave"], scroll: true, section: true },
+    { id: "etc",    name: "More",      pools: ["etc"],    scroll: true, section: true },
   ];
 
   const SAVE_KEY = "hannon-sheet";
@@ -52,18 +52,23 @@
     const m = MODES[modeIdx];
     $("modeName").textContent = m.name;
     const sheet = $("sheet");
-    $("shuffleBtn").style.display = m.scroll ? "none" : "";   // no random for scroll sections
-    if (m.scroll) {
-      // show the whole section, top to bottom, scrollable
+    $("shuffleBtn").style.display = m.section ? "none" : "";   // sections: no random
+    if (m.section) {
+      // browse the whole section, top to bottom, scrollable
       const p = m.pools[0], n = POOLS[p].count;
       sheet.className = "sheet scroll";
       sheet.innerHTML = Array.from({ length: n }, (_, i) =>
         `<img class="page" src="${POOLS[p].dir}/${pad2(i + 1)}.webp" alt="Hanon — ${m.name} ${i + 1}" loading="lazy" decoding="async" />`).join("");
-    } else {
-      sheet.className = "sheet " + (m.pools.length > 1 ? "two-row" : "one-page");
-      const cls = { exercise: "ex", rhythm: "ry", scale: "page", arp: "page" };
+    } else if (m.scroll) {
+      // rhythm: a random rhythm variation over a random full exercise, scrollable
+      sheet.className = "sheet scroll";
       sheet.innerHTML = m.pools
-        .map((pid) => `<img class="${cls[pid] || "page"}" src="${srcOf(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
+        .map((pid) => `<img class="page" src="${srcOf(pid)}" alt="Hanon — ${m.name}" loading="lazy" decoding="async" />`)
+        .join("");
+    } else {
+      sheet.className = "sheet one-page";
+      sheet.innerHTML = m.pools
+        .map((pid) => `<img class="page" src="${srcOf(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
         .join("");
     }
     $("viewer").scrollTop = 0;
@@ -84,7 +89,7 @@
 
   function cycleMode() { modeIdx = (modeIdx + 1) % MODES.length; save(); show(); }
   function shuffle() {
-    if (MODES[modeIdx].scroll) return;               // scroll sections: no random
+    if (MODES[modeIdx].section) return;              // sections: no random
     if (MODES[modeIdx].id === "scale") randomizeScale();
     else MODES[modeIdx].pools.forEach(randomize);
     show();
