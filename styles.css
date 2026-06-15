@@ -1,5 +1,5 @@
 :root {
-  --bg: #e7e7e4;          /* desk behind the page */
+  --bg: #ffffff;          /* white paper */
   --ink: #1a1a1a;
   --ctl: #1a1a1a;
 }
@@ -18,27 +18,26 @@ html, body {
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
   padding: 0;
 }
 .sheet {
   width: 100%; min-height: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 16px;
-  padding: 10px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  padding: 10px 10px 10px max(14px, env(safe-area-inset-left));
 }
 .sheet.two-row { justify-content: center; }   /* keep both rows on screen */
 .sheet img {
   display: block; height: auto;
-  background: #fff;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.16);
+  background: #fff;                            /* padding blends into the white page */
 }
-/* single full page (scales / arpeggios) — fill width, scroll if tall */
-.sheet img.page { width: 100%; max-width: 1180px; }
+/* single sheet (scales / arpeggios) — left-aligned, full width */
+.sheet img.page { width: 100%; max-width: 1100px; }
 /* two-row rhythm view — size to the viewport height so nothing is cut off,
    the rhythm a little smaller than the exercise (it needn't be full width). */
-.sheet img.ex { width: auto; max-width: 96vw; height: 42vh; height: 42dvh; max-height: 230px; }
-.sheet img.ry { width: auto; max-width: 96vw; height: 27vh; height: 27dvh; max-height: 150px; }
+.sheet img.ex { width: auto; max-width: 100%; height: 42vh; height: 42dvh; max-height: 230px; }
+.sheet img.ry { width: auto; max-width: 100%; height: 27vh; height: 27dvh; max-height: 150px; }
 
 /* ---- floating controls: top-right, out of the staff, auto-hiding ---- */
 .controls {
