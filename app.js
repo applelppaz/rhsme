@@ -14,17 +14,17 @@
     rhythm:   { dir: "assets/rhythm",   count: 22 },
     scale:    { dir: "assets/scale",    count: 36 },
     arp:      { dir: "assets/arp",      count: 24 },
-    trill:    { dir: "assets/trill",    count: 18 },
-    octave:   { dir: "assets/octave",   count: 8 },
-    etc:      { dir: "assets/etc",      count: 9 },
+    trill:    { dir: "assets/trill",    count: 13 },
+    octave:   { dir: "assets/octave",   count: 2 },
+    etc:      { dir: "assets/etc",      count: 23 },
   };
   const MODES = [
     { id: "rhythm", name: "Rhythm",    pools: ["exercise", "rhythm"] },
     { id: "scale",  name: "Scales",    pools: ["scale"] },
     { id: "arp",    name: "Arpeggios", pools: ["arp"] },
-    { id: "trill",  name: "Trills",    pools: ["trill"] },
-    { id: "octave", name: "Octaves",   pools: ["octave"] },
-    { id: "etc",    name: "More",      pools: ["etc"] },
+    { id: "trill",  name: "Trills",    pools: ["trill"],  scroll: true },
+    { id: "octave", name: "Octaves",   pools: ["octave"], scroll: true },
+    { id: "etc",    name: "More",      pools: ["etc"],    scroll: true },
   ];
 
   const SAVE_KEY = "hannon-sheet";
@@ -52,11 +52,20 @@
     const m = MODES[modeIdx];
     $("modeName").textContent = m.name;
     const sheet = $("sheet");
-    sheet.className = "sheet " + (m.pools.length > 1 ? "two-row" : "one-page");
-    const cls = { exercise: "ex", rhythm: "ry", scale: "page", arp: "page" };
-    sheet.innerHTML = m.pools
-      .map((pid) => `<img class="${cls[pid] || "page"}" src="${srcOf(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
-      .join("");
+    $("shuffleBtn").style.display = m.scroll ? "none" : "";   // no random for scroll sections
+    if (m.scroll) {
+      // show the whole section, top to bottom, scrollable
+      const p = m.pools[0], n = POOLS[p].count;
+      sheet.className = "sheet scroll";
+      sheet.innerHTML = Array.from({ length: n }, (_, i) =>
+        `<img class="page" src="${POOLS[p].dir}/${pad2(i + 1)}.webp" alt="Hanon — ${m.name} ${i + 1}" loading="lazy" decoding="async" />`).join("");
+    } else {
+      sheet.className = "sheet " + (m.pools.length > 1 ? "two-row" : "one-page");
+      const cls = { exercise: "ex", rhythm: "ry", scale: "page", arp: "page" };
+      sheet.innerHTML = m.pools
+        .map((pid) => `<img class="${cls[pid] || "page"}" src="${srcOf(pid)}" alt="Hanon — ${m.name}" decoding="async" />`)
+        .join("");
+    }
     $("viewer").scrollTop = 0;
   }
 
@@ -75,11 +84,13 @@
 
   function cycleMode() { modeIdx = (modeIdx + 1) % MODES.length; save(); show(); }
   function shuffle() {
+    if (MODES[modeIdx].scroll) return;               // scroll sections: no random
     if (MODES[modeIdx].id === "scale") randomizeScale();
     else MODES[modeIdx].pools.forEach(randomize);
     show();
   }
   function nav(delta) {
+    if (MODES[modeIdx].scroll) return;               // scroll sections: let it scroll
     if (MODES[modeIdx].id === "scale") {             // toggle harmonic <-> melodic minor only
       const pos = (cur.scale - 1) % 3;               // 0 major, 1 minor-harm, 2 minor-mel
       if (pos === 1) cur.scale += 1;
