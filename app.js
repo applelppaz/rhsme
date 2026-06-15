@@ -60,10 +60,11 @@
       sheet.innerHTML = Array.from({ length: n }, (_, i) =>
         `<img class="page" src="${POOLS[p].dir}/${pad2(i + 1)}.webp" alt="Hanon — ${m.name} ${i + 1}" loading="lazy" decoding="async" />`).join("");
     } else if (m.scroll) {
-      // rhythm: a random rhythm variation over a random full exercise, scrollable
+      // rhythm: a random rhythm variation over a random full exercise, scrollable.
+      // The rhythm pattern is shown small so its notes match the exercise's.
       sheet.className = "sheet scroll";
       sheet.innerHTML = m.pools
-        .map((pid) => `<img class="page" src="${srcOf(pid)}" alt="Hanon — ${m.name}" loading="lazy" decoding="async" />`)
+        .map((pid) => `<img class="page${pid === "rhythm" ? " rsmall" : ""}" src="${srcOf(pid)}" alt="Hanon — ${m.name}" loading="lazy" decoding="async" />`)
         .join("");
     } else {
       sheet.className = "sheet one-page";
