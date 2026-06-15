@@ -1,37 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#d8bd86"/>
-      <stop offset="0.5" stop-color="#cbab6f"/>
-      <stop offset="1" stop-color="#bd9a5c"/>
-    </linearGradient>
-  </defs>
-  <!-- aged cover -->
-  <rect width="512" height="512" fill="url(#paper)"/>
-  <!-- ornamental double border -->
-  <rect x="34" y="34" width="444" height="444" fill="none" stroke="#4a3617" stroke-width="9"/>
-  <rect x="52" y="52" width="408" height="408" fill="none" stroke="#4a3617" stroke-width="3"/>
-  <!-- corner diamonds -->
-  <g fill="#4a3617">
-    <path d="M43 43 l12 0 0 12 -12 0 z" transform="rotate(45 49 49)"/>
-    <path d="M457 43 l12 0 0 12 -12 0 z" transform="rotate(45 463 49)"/>
-    <path d="M43 457 l12 0 0 12 -12 0 z" transform="rotate(45 49 463)"/>
-    <path d="M457 457 l12 0 0 12 -12 0 z" transform="rotate(45 463 463)"/>
-  </g>
-  <!-- top rule + label -->
-  <line x1="96" y1="120" x2="416" y2="120" stroke="#4a3617" stroke-width="2"/>
-  <text x="256" y="106" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" letter-spacing="6" fill="#4a3617">SCHIRMER</text>
-  <!-- title -->
-  <text x="256" y="262" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="96" letter-spacing="3" fill="#2f2110">HANON</text>
-  <!-- subtitle -->
-  <text x="256" y="322" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="30" fill="#4a3617">The Virtuoso Pianist</text>
-  <!-- bottom rule + a pair of eighth-notes -->
-  <line x1="96" y1="368" x2="416" y2="368" stroke="#4a3617" stroke-width="2"/>
-  <g fill="#2f2110">
-    <ellipse cx="228" cy="430" rx="17" ry="12" transform="rotate(-20 228 430)"/>
-    <ellipse cx="288" cy="416" rx="17" ry="12" transform="rotate(-20 288 416)"/>
-    <rect x="242" y="358" width="6" height="74"/>
-    <rect x="302" y="344" width="6" height="74"/>
-    <path d="M242 358 L308 344 L308 362 L242 376 Z"/>
+  <rect width="512" height="512" fill="#181818"/>
+  <g fill="#fafafa">
+    <rect x="250" y="150" width="20" height="214" rx="4"/>
+    <path d="M270 150 c56 20 82 54 62 110 c-3 9 -9 17 -16 23 c11 -31 2 -60 -34 -78 c-12 -6 -12 -11 -12 -23 z"/>
+    <ellipse cx="206" cy="372" rx="64" ry="48" transform="rotate(-20 206 372)"/>
   </g>
 </svg>
