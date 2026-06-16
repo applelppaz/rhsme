@@ -95,10 +95,27 @@
     if (b) b.addEventListener("click", () => $("pdfInput").click());
   }
 
+  // remember where the user was in their PDF, per stored file
+  const SCROLL_KEY = "scroll";
+  let scrollTimer = null;
+  function saveSelfScroll(now) {
+    if (!MODES[modeIdx].self) return;
+    const y = $("viewer").scrollTop;
+    clearTimeout(scrollTimer);
+    if (now) { idbPut(SCROLL_KEY, y); return; }
+    scrollTimer = setTimeout(() => idbPut(SCROLL_KEY, y), 350);
+  }
+  function restoreScroll(token, y) {
+    const set = () => { if (token === showToken) $("viewer").scrollTop = y; };
+    requestAnimationFrame(set);
+    setTimeout(set, 60);
+  }
+
   async function renderSelf(token) {
     const sheet = $("sheet");
-    let buf;
+    let buf, savedY = 0;
     try { buf = await idbGet("file"); } catch (_) { buf = null; }
+    try { savedY = (await idbGet(SCROLL_KEY)) || 0; } catch (_) {}
     if (token !== showToken) return;
     if (!buf) { uploadPrompt(false); return; }
     sheet.innerHTML = `<div class="self-status">Loading…</div>`;
@@ -110,17 +127,24 @@
       sheet.innerHTML = "";
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const targetW = Math.min(sheet.clientWidth || 1200, 1400);
+      // First lay out every page (sizes the canvases) so the saved scroll
+      // position is meaningful, then paint the pixels progressively.
+      const items = [];
       for (let i = 1; i <= doc.numPages; i++) {
         if (token !== showToken) return;
         const page = await doc.getPage(i);
-        const vp1 = page.getViewport({ scale: 1 });
-        const vp = page.getViewport({ scale: (targetW * dpr) / vp1.width });
+        const vp = page.getViewport({ scale: (targetW * dpr) / page.getViewport({ scale: 1 }).width });
         const canvas = document.createElement("canvas");
         canvas.className = "page selfpage";
         canvas.width = Math.ceil(vp.width);
         canvas.height = Math.ceil(vp.height);
-        if (token !== showToken) return;
         sheet.appendChild(canvas);
+        items.push({ page, vp, canvas });
+      }
+      if (token !== showToken) return;
+      restoreScroll(token, savedY);
+      for (const { page, vp, canvas } of items) {
+        if (token !== showToken) return;
         await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
       }
     } catch (err) {
@@ -137,6 +161,7 @@
       const buf = await f.arrayBuffer();
       await idbPut("file", buf);
       await idbPut("name", f.name);
+      await idbPut(SCROLL_KEY, 0);                    // new file → start at the top
     } catch (_) {}
     if (MODES[modeIdx].self) show();
   }
@@ -190,7 +215,7 @@
     cur.scale = idx;
   }
 
-  function cycleMode() { modeIdx = (modeIdx + 1) % MODES.length; save(); show(); }
+  function cycleMode() { saveSelfScroll(true); modeIdx = (modeIdx + 1) % MODES.length; save(); show(); }
   function shuffle() {
     if (MODES[modeIdx].section || MODES[modeIdx].self) return;   // sections / self: no random
     if (MODES[modeIdx].id === "scale") randomizeScale();
@@ -253,6 +278,11 @@
     const v = $("viewer");
     v.addEventListener("touchstart", onStart, { passive: true });
     v.addEventListener("touchend", onEnd, { passive: true });
+    v.addEventListener("scroll", () => saveSelfScroll(false), { passive: true });
+    window.addEventListener("pagehide", () => saveSelfScroll(true));
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") saveSelfScroll(true);
+    });
     document.addEventListener("keydown", (e) => {
       if (e.code === "ArrowUp") { e.preventDefault(); nav(-1); wake(); }
       else if (e.code === "ArrowDown") { e.preventDefault(); nav(1); wake(); }
