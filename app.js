@@ -14,9 +14,9 @@
     rhythm:   { dir: "assets/rhythm",   count: 22 },
     scale:    { dir: "assets/scale",    count: 36 },
     arp:      { dir: "assets/arp",      count: 24 },
-    trill:    { dir: "assets/trill",    count: 13 },
-    octave:   { dir: "assets/octave",   count: 2 },
-    etc:      { dir: "assets/etc",      count: 23 },
+    trill:    { dir: "assets/trill",    count: 15 },
+    octave:   { dir: "assets/octave",   count: 8 },
+    etc:      { dir: "assets/etc",      count: 24 },
   };
   const MODES = [
     { id: "rhythm", name: "Rhythm",    pools: ["rhythm", "exercise"], scroll: true },
