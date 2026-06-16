@@ -25,6 +25,7 @@
     { id: "trill",  name: "Trills",    pools: ["trill"],  scroll: true, section: true },
     { id: "octave", name: "Octaves",   pools: ["octave"], scroll: true, section: true },
     { id: "etc",    name: "More",      pools: ["etc"],    scroll: true, section: true },
+    { id: "self",   name: "Self",      pools: [],         scroll: true, self: true },
   ];
 
   const SAVE_KEY = "hannon-sheet";
@@ -48,11 +49,112 @@
     cur[pid] = v;
   }
 
+  // ---- Self mode: render a user-supplied PDF, kept in IndexedDB so it
+  //      survives reloads.  PDF.js is loaded lazily on first use. ----
+  const DB_NAME = "hannon-self", STORE = "pdf";
+  function openDB() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open(DB_NAME, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore(STORE);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  function dbReq(mode, fn) {
+    return openDB().then((db) => new Promise((res, rej) => {
+      const tx = db.transaction(STORE, mode);
+      const out = fn(tx.objectStore(STORE));
+      tx.oncomplete = () => res(out && out.result);
+      tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error);
+    }));
+  }
+  const idbGet = (k) => dbReq("readonly", (s) => s.get(k));
+  const idbPut = (k, v) => dbReq("readwrite", (s) => { s.put(v, k); });
+
+  let pdfjs = null;
+  async function loadPdfjs() {
+    if (!pdfjs) {
+      pdfjs = await import("./vendor/pdfjs/pdf.min.mjs");
+      pdfjs.GlobalWorkerOptions.workerSrc = "./vendor/pdfjs/pdf.worker.min.mjs";
+    }
+    return pdfjs;
+  }
+
+  function uploadPrompt(replace) {
+    const sheet = $("sheet");
+    sheet.innerHTML =
+      `<div class="self-empty">
+         <button id="selfUpload" class="self-cta" type="button">
+           ${replace ? "Replace PDF" : "Upload a PDF"}
+         </button>
+         <p class="self-hint">${replace ? "Pick another PDF to display." :
+           "Choose any PDF score — it stays saved on this device for next time."}</p>
+       </div>`;
+    const b = $("selfUpload");
+    if (b) b.addEventListener("click", () => $("pdfInput").click());
+  }
+
+  async function renderSelf(token) {
+    const sheet = $("sheet");
+    let buf;
+    try { buf = await idbGet("file"); } catch (_) { buf = null; }
+    if (token !== showToken) return;
+    if (!buf) { uploadPrompt(false); return; }
+    sheet.innerHTML = `<div class="self-status">Loading…</div>`;
+    try {
+      const lib = await loadPdfjs();
+      if (token !== showToken) return;
+      const doc = await lib.getDocument({ data: buf.slice(0) }).promise;
+      if (token !== showToken) return;
+      sheet.innerHTML = "";
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const targetW = Math.min(sheet.clientWidth || 1200, 1400);
+      for (let i = 1; i <= doc.numPages; i++) {
+        if (token !== showToken) return;
+        const page = await doc.getPage(i);
+        const vp1 = page.getViewport({ scale: 1 });
+        const vp = page.getViewport({ scale: (targetW * dpr) / vp1.width });
+        const canvas = document.createElement("canvas");
+        canvas.className = "page selfpage";
+        canvas.width = Math.ceil(vp.width);
+        canvas.height = Math.ceil(vp.height);
+        if (token !== showToken) return;
+        sheet.appendChild(canvas);
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+      }
+    } catch (err) {
+      if (token !== showToken) return;
+      uploadPrompt(true);
+    }
+  }
+
+  async function onPdfPicked(e) {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    try {
+      const buf = await f.arrayBuffer();
+      await idbPut("file", buf);
+      await idbPut("name", f.name);
+    } catch (_) {}
+    if (MODES[modeIdx].self) show();
+  }
+
+  let showToken = 0;
   function show() {
+    showToken++;                                     // cancel any in-flight self render
     const m = MODES[modeIdx];
     $("modeName").textContent = m.name;
     const sheet = $("sheet");
-    $("shuffleBtn").style.display = m.section ? "none" : "";   // sections: no random
+    $("shuffleBtn").style.display = (m.section || m.self) ? "none" : "";   // sections / self: no random
+    $("selfBtn").style.display = m.self ? "" : "none";
+    if (m.self) {
+      sheet.className = "sheet scroll selfmode";
+      renderSelf(showToken);
+      $("viewer").scrollTop = 0;
+      return;
+    }
     if (m.section) {
       // browse the whole section, top to bottom, scrollable
       const p = m.pools[0], n = POOLS[p].count;
@@ -90,7 +192,7 @@
 
   function cycleMode() { modeIdx = (modeIdx + 1) % MODES.length; save(); show(); }
   function shuffle() {
-    if (MODES[modeIdx].section) return;              // sections: no random
+    if (MODES[modeIdx].section || MODES[modeIdx].self) return;   // sections / self: no random
     if (MODES[modeIdx].id === "scale") randomizeScale();
     else MODES[modeIdx].pools.forEach(randomize);
     show();
@@ -146,6 +248,8 @@
     load();
     $("modeBtn").addEventListener("click", () => { cycleMode(); wake(); });
     $("shuffleBtn").addEventListener("click", () => { shuffle(); wake(); });
+    $("selfBtn").addEventListener("click", () => { $("pdfInput").click(); wake(); });
+    $("pdfInput").addEventListener("change", onPdfPicked);
     const v = $("viewer");
     v.addEventListener("touchstart", onStart, { passive: true });
     v.addEventListener("touchend", onEnd, { passive: true });
