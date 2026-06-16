@@ -38,6 +38,29 @@ html, body {
 /* the rhythm-variation pattern is shown small so its notes match the full
    exercise below it (it has far fewer notes per line) */
 .sheet img.rsmall { width: 30%; min-width: 220px; }
+
+/* Self mode: the user's PDF is rendered to <canvas> pages, full width */
+.sheet canvas.selfpage { width: 100%; max-width: 1400px; height: auto; display: block; }
+
+/* Self mode — upload prompt / status, shown when no PDF is loaded yet */
+.self-empty {
+  width: 100%; min-height: 70vh; min-height: 70dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; text-align: center;
+}
+.self-cta {
+  border: none; border-radius: 14px;
+  padding: 16px 30px;
+  background: #1a1a1a; color: #fff;
+  font-size: 1.05rem; font-weight: 650; letter-spacing: 0.2px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+  transition: transform .1s ease, background .12s ease;
+}
+.self-cta:hover { background: #333; }
+.self-cta:active { transform: scale(0.96); }
+.self-hint { margin: 0; max-width: 360px; color: #6b6b70; font-size: 0.9rem; line-height: 1.5; }
+.self-status { width: 100%; padding: 28vh 16px; text-align: center; color: #6b6b70; font-size: 1rem; }
 /* two-row rhythm view — size to the viewport height so nothing is cut off,
    the rhythm a little smaller than the exercise (it needn't be full width). */
 .sheet img.ex { width: auto; max-width: 100%; height: 42vh; height: 42dvh; max-height: 230px; }
